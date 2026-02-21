@@ -1,0 +1,14 @@
+# config/packages/rate_limiter.yaml
+framework:
+    rate_limiter:
+        api_public:
+            policy: sliding_window
+            limit: 60
+            interval: '1 minute'
+            cache_pool: cache.rate_limiter # usa Memcached (non file)
+
+        api_private:
+            policy: sliding_window
+            limit: 1000
+            interval: '1 minute'
+            cache_pool: cache.rate_limiter # usa Memcached (non file)
