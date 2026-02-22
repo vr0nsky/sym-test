@@ -268,6 +268,7 @@ php bin/phpunit --testdox
 
 I test coprono:
 - `JobController`: creazione job, stato, download (tutti i casi di errore)
+- `AuthController`: validazione input, risposta Keycloak, fallimento Keycloak
 - `RateLimiterListener`: route accettate, limiti superati, isolamento pubblico/privato
 - `JwtListener`: validazione token, skip route pubbliche, cache JWKS
 - `HomeController`: risposta dell'endpoint root
