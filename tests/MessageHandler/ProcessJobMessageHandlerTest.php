@@ -13,9 +13,13 @@ namespace App\Tests\MessageHandler {
     use App\Entity\Job;
     use App\Message\ProcessJobMessage;
     use App\MessageHandler\ProcessJobMessageHandler;
+    use Doctrine\DBAL\Connection;
     use Doctrine\ORM\EntityManagerInterface;
     use Doctrine\ORM\EntityRepository;
+    use Doctrine\Persistence\ManagerRegistry;
     use PHPUnit\Framework\TestCase;
+    use Psr\Log\NullLogger;
+    use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 
     class ProcessJobMessageHandlerTest extends TestCase
     {
@@ -48,18 +52,27 @@ namespace App\Tests\MessageHandler {
 
         private function makeHandler(EntityManagerInterface $em): ProcessJobMessageHandler
         {
-            return new ProcessJobMessageHandler($em, $this->outputDir);
+            $connection = $this->createMock(Connection::class);
+            $connection->method('isConnected')->willReturn(true);
+            $connection->method('isTransactionActive')->willReturn(false);
+            $em->method('getConnection')->willReturn($connection);
+            $em->method('isOpen')->willReturn(true);
+
+            $doctrine = $this->createMock(ManagerRegistry::class);
+            $doctrine->method('getManager')->willReturn($em);
+
+            return new ProcessJobMessageHandler($doctrine, $this->outputDir, new NullLogger());
         }
 
-        public function testJobNotFoundDoesNothing(): void
+        public function testJobNotFoundThrowsUnrecoverable(): void
         {
             $repo = $this->createMock(EntityRepository::class);
             $repo->method('find')->willReturn(null);
 
             $em = $this->createMock(EntityManagerInterface::class);
             $em->method('getRepository')->willReturn($repo);
-            $em->expects($this->never())->method('flush');
 
+            $this->expectException(UnrecoverableMessageHandlingException::class);
             $this->makeHandler($em)(new ProcessJobMessage(999));
         }
 
@@ -96,7 +109,6 @@ namespace App\Tests\MessageHandler {
 
             $em = $this->createMock(EntityManagerInterface::class);
             $em->method('getRepository')->willReturn($repo);
-            $em->expects($this->exactly(2))->method('flush');
 
             $this->makeHandler($em)(new ProcessJobMessage(1));
 
