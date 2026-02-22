@@ -80,7 +80,7 @@ systemctl stop orango-worker
 systemctl restart orango-worker
 
 # Log in tempo reale
-journalctl -u orango-worker -f
+tail -f /var/log/orango-worker.log
 ```
 
 ## Formato delle risposte
@@ -176,7 +176,7 @@ Risposta:
 }
 ```
 
-Stati possibili: `pending` → `processing` → `completed`
+Stati possibili: `pending` → `processing` → `completed` | `failed`
 
 ---
 
