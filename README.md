@@ -272,5 +272,6 @@ I test coprono:
 - `RateLimiterListener`: route accettate, limiti superati, isolamento pubblico/privato
 - `JwtListener`: validazione token, skip route pubbliche, cache JWKS
 - `HomeController`: risposta dell'endpoint root
+- `ProcessJobMessageHandler`: job non trovato, transizione di stato, output JSON e XML
 
 In test env il `JwtListener` viene sostituito da uno stub (`JwtListenerStub`) che bypassa la validazione Keycloak, e il transport Messenger usa la modalità in-memory.
