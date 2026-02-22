@@ -24,8 +24,22 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    keycloak.http_client:
+        class: Symfony\Component\HttpClient\RetryableHttpClient
+        arguments:
+            $client: '@http_client'
+            $strategy: !service
+                class: Symfony\Component\HttpClient\Retry\GenericRetryStrategy
+                arguments:
+                    $statusCodes: [429, 500, 502, 503, 504]
+                    $delayMs: 500
+                    $multiplier: 2
+                    $maxDelayMs: 5000
+            $maxRetries: 3
+
     App\Controller\AuthController:
         arguments:
+            $http: '@keycloak.http_client'
             $keycloakUrl: '%env(KEYCLOAK_URL)%'
             $keycloakRealm: '%env(KEYCLOAK_REALM)%'
     App\Controller\JobController:
@@ -34,6 +48,7 @@ services:
 
     App\EventListener\JwtListener:
         arguments:
+            $http: '@keycloak.http_client'
             $keycloakUrl: '%env(KEYCLOAK_URL)%'
             $keycloakRealm: '%env(KEYCLOAK_REALM)%'
         tags:
