@@ -16,3 +16,9 @@ framework:
 
         routing:
             App\Message\ProcessJobMessage: async
+
+when@test:
+    framework:
+        messenger:
+            transports:
+                async: 'in-memory://'

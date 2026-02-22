@@ -1,0 +1,5 @@
+services:
+    App\EventListener\JwtListener:
+        class: App\Tests\Stub\JwtListenerStub
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, priority: 10 }

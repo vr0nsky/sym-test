@@ -247,10 +247,28 @@ La validazione del file in upload è attualmente commentata per semplicità di t
 
 ## Testing
 
+Il DB di test viene creato automaticamente con il suffisso `_test`. Prima di eseguire i test per la prima volta:
+
+```bash
+php bin/console doctrine:database:create --env=test
+php bin/console doctrine:migrations:migrate --env=test
+```
+
+Crea `.env.test.local` con le credenziali del DB (non committato):
+
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@127.0.0.1:5432/DB_NAME?serverVersion=16&charset=utf8"
+```
+
+Esegui i test:
+
 ```bash
 php bin/phpunit --testdox
 ```
 
 I test coprono:
+- `JobController`: creazione job, stato, download (tutti i casi di errore)
 - `JwtListener`: validazione token, skip route pubbliche, cache JWKS
 - `HomeController`: risposta dell'endpoint root
+
+In test env il `JwtListener` viene sostituito da uno stub (`JwtListenerStub`) che bypassa la validazione Keycloak, e il transport Messenger usa la modalità in-memory.
