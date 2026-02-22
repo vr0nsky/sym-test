@@ -7,9 +7,9 @@ framework:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                 retry_strategy:
                     max_retries: 3
-                    delay: 1000
+                    delay: 500
                     multiplier: 2
-                    max_delay: 10000
+                    max_delay: 5000
 
             failed:
                 dsn: 'doctrine://default?queue_name=failed'
