@@ -2,6 +2,8 @@
 
 API REST sviluppata con Symfony 7 che funge da proxy tra client backend e Keycloak per l'autenticazione, e gestisce job asincroni di conversione file tramite RabbitMQ.
 
+> **Stato attuale (demo):** Nell'implementazione corrente il parametro `file` di `POST /api/jobs` è completamente ignorato — nessun file viene caricato sulla macchina. Il formato di input è hardcodato a `csv`, il path del file è fittizio e il worker produce un output dummy hardcodato (nessuna conversione reale viene eseguita). La validazione completa di upload, formato e MIME type è presente nel controller `JobController` nel blocco commentato `/* In un mondo normale */`, pronta per essere attivata.
+
 ## Architettura
 
 ```
@@ -240,10 +242,6 @@ curl -s https://your-api/api/jobs/$JOB_ID/download \
 - La scadenza del token è sempre verificata localmente senza chiamare Keycloak ad ogni richiesta
 - Il MIME type dei file in upload viene verificato sui magic bytes, non solo sull'estensione
 - L'API è progettata per comunicazione backend-to-backend: il `client_secret` non dovrebbe essere esposto a client pubblici (browser, app mobile)
-
-## Note sulla demo
-
-La validazione del file in upload è attualmente commentata per semplicità di test via curl. Il codice completo di validazione è presente nel controller `JobController` all'interno del blocco commentato `/* In un mondo normale */`.
 
 ## Testing
 
