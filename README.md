@@ -238,7 +238,7 @@ curl -s https://your-api/api/jobs/$JOB_ID/download \
 
 ## Sicurezza
 
-- I token JWT vengono validati localmente tramite le chiavi pubbliche JWKS di Keycloak (cachiate per 1 ora)
+- I token JWT vengono validati localmente tramite le chiavi pubbliche JWKS di Keycloak (tenute in cache per 1 ora)
 - La scadenza del token è sempre verificata localmente senza chiamare Keycloak ad ogni richiesta
 - Il MIME type dei file in upload viene verificato sui magic bytes, non solo sull'estensione
 - L'API è progettata per comunicazione backend-to-backend: il `client_secret` non dovrebbe essere esposto a client pubblici (browser, app mobile)
