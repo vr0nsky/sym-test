@@ -11,9 +11,11 @@ final class HomeController extends AbstractController
     #[Route('/', name: 'app_home', methods: ['GET'])]
     public function index(): JsonResponse
     {
-        return $this->json([ 
-            'message' => 'Benvenuti su Orango API',
-            'version' => '1.0'
+        return $this->json([
+            'data' => [
+                'message' => 'Benvenuti su Orango API',
+                'version' => '1.0',
+            ],
         ]);
     }
 }

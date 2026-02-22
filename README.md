@@ -66,13 +66,41 @@ php bin/console doctrine:migrations:migrate
 
 ## Avvio del consumer
 
-Il consumer deve essere in esecuzione per processare i job in background:
+Il worker è gestito tramite systemd e si avvia automaticamente con il sistema:
 
 ```bash
-php bin/console messenger:consume async --time-limit=3600 -vv
+# Stato
+systemctl status orango-worker
+
+# Avvio / stop / riavvio
+systemctl start orango-worker
+systemctl stop orango-worker
+systemctl restart orango-worker
+
+# Log in tempo reale
+journalctl -u orango-worker -f
 ```
 
-In produzione si consiglia di gestirlo con `supervisord` per mantenerlo sempre attivo.
+## Formato delle risposte
+
+Tutte le risposte JSON seguono una struttura uniforme.
+
+**Successo:**
+```json
+{
+    "data": { ... }
+}
+```
+
+**Errore:**
+```json
+{
+    "error": {
+        "code": "ERROR_CODE",
+        "message": "Descrizione dell'errore"
+    }
+}
+```
 
 ## API Reference
 
@@ -88,7 +116,7 @@ Content-Type: application/json
 }
 ```
 
-Risposta:
+Risposta (passthrough Keycloak):
 ```json
 {
     "access_token": "eyJ...",
@@ -113,11 +141,13 @@ output_format: json       # json | xml
 Risposta `201`:
 ```json
 {
-    "job_id": 1,
-    "status": "pending",
-    "input_format": "csv",
-    "output_format": "json",
-    "created_at": "2026-02-21T16:40:37+00:00"
+    "data": {
+        "job_id": 1,
+        "status": "pending",
+        "input_format": "csv",
+        "output_format": "json",
+        "created_at": "2026-02-21T16:40:37+00:00"
+    }
 }
 ```
 
@@ -133,12 +163,14 @@ Authorization: Bearer {token}
 Risposta:
 ```json
 {
-    "job_id": 1,
-    "status": "completed",
-    "input_format": "csv",
-    "output_format": "json",
-    "output_file_path": "/var/www/.../var/outputs/job_xxx.json",
-    "created_at": "2026-02-21T16:40:37+00:00"
+    "data": {
+        "job_id": 1,
+        "status": "completed",
+        "input_format": "csv",
+        "output_format": "json",
+        "output_file_path": "/var/www/.../var/outputs/job_xxx.json",
+        "created_at": "2026-02-21T16:40:37+00:00"
+    }
 }
 ```
 
@@ -156,11 +188,23 @@ Authorization: Bearer {token}
 Restituisce il file convertito come attachment. Disponibile solo quando lo status è `completed`.
 
 ```bash
-# Esempio con salvataggio su disco
 curl -s https://your-api/api/jobs/1/download \
   -H "Authorization: Bearer $TOKEN" \
   -o result.json
 ```
+
+---
+
+## Codici di errore
+
+| Code | HTTP | Descrizione |
+|---|---|---|
+| `MISSING_TOKEN` | 401 | Header Authorization assente |
+| `INVALID_TOKEN` | 401 | Token JWT non valido o scaduto |
+| `INVALID_OUTPUT_FORMAT` | 400 | Formato di output non supportato |
+| `JOB_NOT_FOUND` | 404 | Job non trovato |
+| `JOB_NOT_COMPLETED` | 409 | Job non ancora completato |
+| `OUTPUT_FILE_NOT_FOUND` | 404 | File di output mancante |
 
 ---
 
@@ -178,7 +222,7 @@ JOB_ID=$(curl -s -X POST https://your-api/api/jobs \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@myfile.csv" \
   -F "output_format=json" \
-  | jq -r '.job_id')
+  | jq -r '.data.job_id')
 
 # 3. Polling stato
 curl -s https://your-api/api/jobs/$JOB_ID \
@@ -204,8 +248,9 @@ La validazione del file in upload è attualmente commentata per semplicità di t
 ## Testing
 
 ```bash
-./vendor/bin/phpunit --testdox
+php bin/phpunit --testdox
 ```
 
 I test coprono:
 - `JwtListener`: validazione token, skip route pubbliche, cache JWKS
+- `HomeController`: risposta dell'endpoint root

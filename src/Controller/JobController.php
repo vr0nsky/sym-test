@@ -37,7 +37,7 @@ class JobController extends AbstractController
         $outputFormat = strtolower($request->request->get('output_format', ''));
 
         if (!in_array($outputFormat, self::ALLOWED_OUTPUT_FORMATS)) {
-            return new JsonResponse(['error' => 'Invalid output format. Allowed: json, xml'], 400);
+            return new JsonResponse(['error' => ['code' => 'INVALID_OUTPUT_FORMAT', 'message' => 'Invalid output format. Allowed: json, xml']], 400);
         }
 
         /* In un mondo normale:
@@ -79,11 +79,13 @@ class JobController extends AbstractController
         $this->bus->dispatch(new ProcessJobMessage($job->getId()));
 
         return new JsonResponse([
-            'job_id'        => $job->getId(),
-            'status'        => $job->getStatus(),
-            'input_format'  => $job->getInputFormat(),
-            'output_format' => $job->getOutputFormat(),
-            'created_at'    => $job->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            'data' => [
+                'job_id'        => $job->getId(),
+                'status'        => $job->getStatus(),
+                'input_format'  => $job->getInputFormat(),
+                'output_format' => $job->getOutputFormat(),
+                'created_at'    => $job->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            ],
         ], 201);
     }
 
@@ -93,16 +95,18 @@ class JobController extends AbstractController
         $job = $this->em->getRepository(Job::class)->find($id);
 
         if (!$job) {
-            return new JsonResponse(['error' => 'Job not found'], 404);
+            return new JsonResponse(['error' => ['code' => 'JOB_NOT_FOUND', 'message' => 'Job not found']], 404);
         }
 
         return new JsonResponse([
-            'job_id'            => $job->getId(),
-            'status'            => $job->getStatus(),
-            'input_format'      => $job->getInputFormat(),
-            'output_format'     => $job->getOutputFormat(),
-            'output_file_path'  => $job->getOutputFilePath(),
-            'created_at'        => $job->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            'data' => [
+                'job_id'        => $job->getId(),
+                'status'        => $job->getStatus(),
+                'input_format'  => $job->getInputFormat(),
+                'output_format' => $job->getOutputFormat(),
+                'output_file_path' => $job->getOutputFilePath(),
+                'created_at'    => $job->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            ],
         ]);
     }
 
@@ -112,17 +116,17 @@ class JobController extends AbstractController
 	    $job = $this->em->getRepository(Job::class)->find($id);
 
 	    if (!$job) {
-	        return new JsonResponse(['error' => 'Job not found'], 404);
+	        return new JsonResponse(['error' => ['code' => 'JOB_NOT_FOUND', 'message' => 'Job not found']], 404);
 	    }
 
 	    if ($job->getStatus() !== 'completed') {
-	        return new JsonResponse(['error' => 'Job not completed yet'], 409);
+	        return new JsonResponse(['error' => ['code' => 'JOB_NOT_COMPLETED', 'message' => 'Job not completed yet']], 409);
 	    }
 
 	    $path = $job->getOutputFilePath();
 
 	    if (!file_exists($path)) {
-	        return new JsonResponse(['error' => 'Output file not found'], 404);
+	        return new JsonResponse(['error' => ['code' => 'OUTPUT_FILE_NOT_FOUND', 'message' => 'Output file not found']], 404);
 	    }
 
 	    return new BinaryFileResponse($path, 200, [

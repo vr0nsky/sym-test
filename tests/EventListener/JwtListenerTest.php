@@ -43,7 +43,7 @@ class JwtListenerTest extends TestCase
 
     public function testSkipsAuthRoute(): void
     {
-        $request = Request::create('/api/auth', 'POST'); // il listener deve ignorare /api/auth che è il login
+        $request = Request::create('/api/auth', 'POST'); // il listener deve ignorare /api/auth che ï¿½ il login
         $event = $this->createEvent($request);
 
         $this->listener->onKernelRequest($event);
@@ -61,7 +61,7 @@ class JwtListenerTest extends TestCase
         $this->listener->onKernelRequest($event);
 
         $this->assertEquals(401, $event->getResponse()->getStatusCode());
-        $this->assertStringContainsString('No token', $event->getResponse()->getContent());
+        $this->assertStringContainsString('MISSING_TOKEN', $event->getResponse()->getContent());
     }
 
     public function testReturns401WhenInvalidToken(): void 
@@ -75,7 +75,7 @@ class JwtListenerTest extends TestCase
         $this->listener->onKernelRequest($event);
 
         $this->assertEquals(401, $event->getResponse()->getStatusCode());
-        $this->assertStringContainsString('Invalid token', $event->getResponse()->getContent());
+        $this->assertStringContainsString('INVALID_TOKEN', $event->getResponse()->getContent());
     }
 
     public function testFetchesJwksFromKeycloakWhenCacheMiss(): void
@@ -99,7 +99,7 @@ class JwtListenerTest extends TestCase
 
         $this->listener->onKernelRequest($event);
 
-        // token non valido ma Keycloak è stato chiamato
+        // token non valido ma Keycloak ï¿½ stato chiamato
         $this->assertEquals(401, $event->getResponse()->getStatusCode());
     }
 

@@ -32,7 +32,7 @@ class JwtListener
         $token = str_replace('Bearer ', '', $authHeader);
 
         if (!$token) {
-            $event->setResponse(new JsonResponse(['error' => 'No token'], 401));
+            $event->setResponse(new JsonResponse(['error' => ['code' => 'MISSING_TOKEN', 'message' => 'No token']], 401));
             return;
         }
 
@@ -41,7 +41,7 @@ class JwtListener
             $decoded = JWT::decode($token, JWK::parseKeySet($jwks));
             $request->attributes->set('jwt_payload', (array) $decoded);
         } catch (\Exception $e) {
-            $event->setResponse(new JsonResponse(['error' => 'Invalid token'], 401));
+            $event->setResponse(new JsonResponse(['error' => ['code' => 'INVALID_TOKEN', 'message' => 'Invalid token']], 401));
         }
     }
 

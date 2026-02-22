@@ -19,7 +19,8 @@ final class HomeControllerTest extends WebTestCase
 
         $data = json_decode($content, true);
         self::assertIsArray($data);
-        self::assertArrayHasKey('message', $data);
+        self::assertArrayHasKey('data', $data);
+        self::assertArrayHasKey('message', $data['data']);
         self::assertTrue(mb_check_encoding($content, 'UTF-8'));
     }
 }
